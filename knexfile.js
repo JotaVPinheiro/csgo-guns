@@ -9,15 +9,16 @@ module.exports = {
     client: 'pg',
     connection: {
       database: process.env.database,
-      user: process.env.user,
+      user:     process.env.user,
       password: process.env.password
+    },
+    migrations: {
+      tableName: 'knex_migrations',
+      directory: `${__dirname}/src/database/migrations`
+    },
+    seeds: {
+      directory: `${__dirname}/src/database/seeds`
     }
-  },
-  migrations: {
-    directory: `${__dirname}/src/database/migrations`
-  },
-  seeds: {
-    directory: `${__dirname}/src/database/seeds`
   }
 
   /*staging: {
