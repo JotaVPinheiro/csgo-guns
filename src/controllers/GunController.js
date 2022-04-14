@@ -1,12 +1,15 @@
 const knex = require('../database')
+const maxPerPage = 5
 
 module.exports = {
     async index(req, res, next) {
         try {
+            const params = req.query
             const query = knex('guns')
-            const { id } = req.query
+                .limit(5)
+                .offset((params.page - 1) * 5)
 
-            if(id)
+            if(params.id)
                 query.where({ id })
 
             const results = await query
