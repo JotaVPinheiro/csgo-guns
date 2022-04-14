@@ -1,9 +1,9 @@
 const express = require("express")
 const routes = express.Router()
 
-const SkinController = require('./controllers/SkinController')
+const GunController = require('./controllers/GunController')
 
 routes
-    .get('/index', SkinController.index)
+    .get('/index', GunController.index)
 
 module.exports = routes
