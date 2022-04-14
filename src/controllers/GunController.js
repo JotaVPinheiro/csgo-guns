@@ -8,12 +8,12 @@ module.exports = {
             console.log(params)
             const page = params.page || 1
             const query = knex('guns')
-                .limit(5)
-                .offset((page - 1) * 5)
+                .limit(maxPerPage)
+                .offset((page - 1) * maxPerPage)
 
-            if(params.id)
+            if(params.id) {
                 query.where('id', params.id)
-            else {
+            } else if(params) {
                 if(params.name)
                     query.whereILike('name', `${params.name}%`)
                 if(params.maxPrice)
