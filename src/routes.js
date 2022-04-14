@@ -4,6 +4,7 @@ const routes = express.Router()
 const GunController = require('./controllers/GunController')
 
 routes
-    .get('/index', GunController.index)
+    .get('/guns', GunController.index)
+    .post('/guns', GunController.create)
 
 module.exports = routes
