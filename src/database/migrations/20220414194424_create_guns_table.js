@@ -1,6 +1,7 @@
 exports.up = async knex => knex.schema.createTable('guns', table => {
     table.increments('id')
     table.string('name')
+        .unique()
         .notNullable()
     table.string('category')
         .notNullable()
