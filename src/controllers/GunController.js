@@ -1,10 +1,17 @@
-qconst knex = require('../database')
+const knex = require('../database')
 
 module.exports = {
     async index(req, res, next) {
         try {
-            const query = await knex('guns')
-            return res.json(query)
+            const query = knex('guns')
+            const { id } = req.query
+
+            if(id)
+                query.where({ id })
+
+            const results = await query
+
+            return res.json(results)
         } catch (error) {
             next(error)
         }
