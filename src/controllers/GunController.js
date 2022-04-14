@@ -20,6 +20,10 @@ module.exports = {
                     query.where('price', '<=', params.maxPrice)
                 if(params.minPrice)
                     query.where('price', '>=', params.minPrice)
+                if(params.category)
+                    query.whereLike('category', params.category)
+                if(params.used_by)
+                    query.whereLike('used_by', `%${params.used_by}%`)
             }
             
             const results = await query
