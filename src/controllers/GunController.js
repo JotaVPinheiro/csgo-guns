@@ -14,6 +14,7 @@ module.exports = {
             if(params.id) {
                 query.where('id', params.id)
             } else if(params) {
+                // Filtering
                 if(params.name)
                     query.whereILike('name', `${params.name}%`)
                 if(params.maxPrice)
@@ -24,6 +25,14 @@ module.exports = {
                     query.whereLike('category', params.category)
                 if(params.used_by)
                     query.whereLike('used_by', `%${params.used_by}%`)
+                
+                // Ordenation
+                if(params.byPrice)
+                    query.orderBy('price')
+                else if(params.byName)
+                    query.orderBy('name')
+                else if(params.byRelease)
+                    query.orderBy('release_date')
             }
             
             const results = await query
