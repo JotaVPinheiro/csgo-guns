@@ -66,6 +66,14 @@ module.exports = {
             if(Date.parse(data.release_date) > Date.now())
                 throw new Error("Release date can't be in future time.")
 
+            for(const element in data) {
+                if(data[element] == '')
+                    throw new Error(`${element} can't be null.`)
+
+                if(typeof data[element] == 'number' && data[element] <= 0)
+                    throw new Error(`${element} can't be negative or 0.`)
+            }
+
             await knex('guns').insert(data)
             return res.status(201).send()
         } catch (error) {
