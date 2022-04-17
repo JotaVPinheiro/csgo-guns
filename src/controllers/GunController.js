@@ -17,9 +17,9 @@ module.exports = {
                 // Filtering
                 if(params.name)
                     query.whereILike('name', `${params.name}%`)
-                if(params.maxPrice)
+                if(params.max_price)
                     query.where('price', '<=', params.maxPrice)
-                if(params.minPrice)
+                if(params.min_price)
                     query.where('price', '>=', params.minPrice)
                 if(params.category)
                     query.whereLike('category', params.category)
@@ -27,11 +27,11 @@ module.exports = {
                     query.whereLike('used_by', `%${params.used_by}%`)
                 
                 // Ordenation
-                if(params.byPrice)
+                if(params.by_price)
                     query.orderBy('price', params.desc ? 'desc' : '')
-                else if(params.byName)
+                else if(params.by_name)
                     query.orderBy('name', params.desc ? 'desc' : '')
-                else if(params.byRelease)
+                else if(params.by_release)
                     query.orderBy('release_date', params.desc ? 'desc' : '')
             }
             
