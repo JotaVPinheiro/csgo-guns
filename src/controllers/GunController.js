@@ -11,32 +11,49 @@ module.exports = {
                 .limit(maxPerPage)
                 .offset((page - 1) * maxPerPage)
 
+            if(!params) {
+                const results = await query
+                return res.json(results)
+            }
+            
             if(params.id) {
                 query.where('id', params.id)
-            } else if(params) {
-                // Filtering
-                if(params.name)
-                    query.whereILike('name', `${params.name}%`)
-                if(params.max_price)
-                    query.where('price', '<=', params.maxPrice)
-                if(params.min_price)
-                    query.where('price', '>=', params.minPrice)
-                if(params.category)
-                    query.whereLike('category', params.category)
-                if(params.used_by)
-                    query.whereLike('used_by', `%${params.used_by}%`)
+                const results = await query
+                return res.json(results)
+            }
+            
+            // Filtering
+            if(params.name)
+                query.whereILike('name', `${params.name}%`)
+            if(params.max_price)
+                query.where('price', '<=', params.max_price)
+            if(params.min_price)
+                query.where('price', '>=', params.min_price)
+            if(params.category)
+                query.whereLike('category', params.category)
+            if(params.used_by)
+                query.whereLike('used_by', `%${params.used_by}%`)
                 
-                // Ordenation
-                if(params.by_price)
-                    query.orderBy('price', params.desc ? 'desc' : '')
-                else if(params.by_name)
-                    query.orderBy('name', params.desc ? 'desc' : '')
-                else if(params.by_release)
-                    query.orderBy('release_date', params.desc ? 'desc' : '')
+            // Ordenation
+            if(params.by_price) {
+                query.orderBy('price', params.desc ? 'desc' : '')
+                const results = await query
+                return res.json(results)
+            }
+            
+            if(params.by_name) {
+                query.orderBy('name', params.desc ? 'desc' : '')
+                const results = await query
+                return res.json(results)
+            }
+
+            if(params.by_release) {
+                query.orderBy('release_date', params.desc ? 'desc' : '')
+                const results = await query
+                return res.json(results)
             }
             
             const results = await query
-
             return res.json(results)
         } catch (error) {
             next(error)
