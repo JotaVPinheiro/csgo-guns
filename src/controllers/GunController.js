@@ -62,6 +62,10 @@ module.exports = {
     async create(req, res, next) {
         try {
             const data = req.body
+            
+            if(Date.parse(data.release_date) > Date.now())
+                throw new Error("Release date can't be in future time.")
+
             await knex('guns').insert(data)
             return res.status(201).send()
         } catch (error) {
