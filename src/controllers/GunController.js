@@ -28,11 +28,11 @@ module.exports = {
                 
                 // Ordenation
                 if(params.byPrice)
-                    query.orderBy('price')
+                    query.orderBy('price', params.desc ? 'desc' : '')
                 else if(params.byName)
-                    query.orderBy('name')
+                    query.orderBy('name', params.desc ? 'desc' : '')
                 else if(params.byRelease)
-                    query.orderBy('release_date')
+                    query.orderBy('release_date', params.desc ? 'desc' : '')
             }
             
             const results = await query
