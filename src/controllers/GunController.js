@@ -62,6 +62,7 @@ module.exports = {
     async create(req, res, next) {
         try {
             const data = req.body
+            data.img_path = req.file.filename
             
             if(Date.parse(data.release_date) > Date.now())
                 throw new Error("Release date can't be in future time.")

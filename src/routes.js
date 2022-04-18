@@ -7,6 +7,6 @@ const GunController = require('./controllers/GunController')
 
 routes
     .get('/guns', GunController.index)
-    .post('/guns', multer(multerConfig).single('file'), GunController.create)
+    .post('/guns', multer(multerConfig).single('image'), GunController.create)
 
 module.exports = routes

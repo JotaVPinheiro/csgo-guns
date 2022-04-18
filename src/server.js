@@ -4,6 +4,7 @@ const app = express()
 
 app
     .use(express.json())
+    .use(express.urlencoded({ extended: true }))
     .use(routes)
     .use((req, res, next) => {
         const error = new Error('Not Found!')
