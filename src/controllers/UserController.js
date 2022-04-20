@@ -8,6 +8,7 @@ const handleError = require('../exceptions/handler')
 const validEmail = /^.+@.+\..+$/
 const maxPerPage = 5
 const saltOrRounds = 10
+const expiresIn = 600
 
 module.exports = {
     async index(req, res, response) {
@@ -68,7 +69,7 @@ module.exports = {
             if(!rightPassword) {
                 return handleError('wrong_password', res)
             } else {
-                const token = jwt.sign(user[0], process.env.secret_key, { expiresIn: 600 })
+                const token = jwt.sign(user[0], process.env.secret_key, { expiresIn })
                 return res.json({ auth: true, token })
             }
         } catch (error) {
@@ -81,5 +82,24 @@ module.exports = {
 
         return res.json({ auth: false, token: null})
     },
+
+    async auth(req, res, next) {
+        try {
+            const token = await req.headers['x-access-token']
+
+            if(!token)
+                return handleError('no_token', res)
+
+            jwt.verify(token, process.env.secret_key, (err, decoded) => {
+                if(err) {
+                    return handleError('auth_fail', res)
+                } else {
+                    return res.status(200).send()
+                }
+            })
+        } catch (error) {
+            next(error)
+        }
+    }
     
 }

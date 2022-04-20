@@ -23,6 +23,22 @@ const knownErrors = {
         status: 400,
         message: 'Invalid email.',
     },
+    user_not_found: {
+        status: 400,
+        message: 'Username not found.'
+    },
+    wrong_password: {
+        status: 400,
+        message: 'Wrong password.'
+    },
+    no_token: {
+        status: 400,
+        message: 'No token provided.'
+    },
+    auth_fail: {
+        status: 500,
+        message: 'Failed to authenticate token.'
+    }
 }
 
 const handleError = async (err, res, param = '') => {
