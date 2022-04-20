@@ -1,3 +1,4 @@
+require('dotenv').config
 const knex = require('../database')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
@@ -54,5 +55,25 @@ module.exports = {
         }
     },
 
+    login: async (req, res, next) => {
+        try {
+            const { username, password } = await req.body
+            const user = await knex('users').where('username', username)
+
+            if(user.length == 0)
+                return handleError('user_not_found', res)
+
+            const rightPassword = await bcrypt.compare(password, user[0].hash_password)
+
+            if(!rightPassword) {
+                return handleError('wrong_password', res)
+            } else {
+                const token = jwt.sign(user[0], process.env.secret_key, { expiresIn: 600 })
+                return res.json({ auth: true, token })
+            }
+        } catch (error) {
+            next(error)
+        }
+    },
     
 }

@@ -13,5 +13,6 @@ routes
     // User routes
     .get('/users', UserController.index)
     .post('/users', UserController.create)
+    .post('/login', UserController.login)
 
 module.exports = routes
