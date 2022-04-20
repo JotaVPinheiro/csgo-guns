@@ -14,7 +14,15 @@ const knownErrors = {
     negative_value: {
         status: 400,
         message: "[param] can't be negative or 0."
-    }
+    },
+    short_password: {
+        status: 400,
+        message: 'Your password needs to be at least 6 characters long.'
+    },
+    invalid_email: {
+        status: 400,
+        message: 'Invalid email.',
+    },
 }
 
 const handleError = async (err, res, param = '') => {
