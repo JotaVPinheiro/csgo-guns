@@ -7,6 +7,19 @@ const handleError = require('../exceptions/handler')
 const maxPerPage = 5
 
 module.exports = {
+    async index(req, res, next) {
+        const { gun_id = 0, page = 1 } = await req.query
+
+        if(gun_id == 0)
+            return handleError('no_gun_id', res)
+            
+        const gun_reviews = await knex('reviews')
+            .where({ gun_id })
+            .limit(maxPerPage)
+            .offset((page - 1) * maxPerPage)
+
+        return res.json(gun_reviews)
+    },
     async create(req, res, next) {
         try {
             const data = req.body

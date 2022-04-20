@@ -18,6 +18,7 @@ routes
     .post('/logout', UserController.logout)
     .get('/auth', UserController.auth)
     // Review routes
+    .get('/reviews', ReviewController.index)
     .post('/reviews', ReviewController.create)
 
 module.exports = routes

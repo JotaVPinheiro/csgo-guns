@@ -24,7 +24,7 @@ const knownErrors = {
         message: 'Invalid email.',
     },
     user_not_found: {
-        status: 400,
+        status: 404,
         message: 'Username not found.'
     },
     wrong_password: {
@@ -42,6 +42,10 @@ const knownErrors = {
     bad_rating: {
         status: 400,
         message: 'Rating must be between 0 and 5'
+    },
+    no_gun_id: {
+        status: 400,
+        message: 'No gun_id provided'
     }
 }
 
