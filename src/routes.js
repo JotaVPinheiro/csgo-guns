@@ -14,5 +14,6 @@ routes
     .get('/users', UserController.index)
     .post('/users', UserController.create)
     .post('/login', UserController.login)
+    .post('/logout', UserController.logout)
 
 module.exports = routes

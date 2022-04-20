@@ -55,7 +55,7 @@ module.exports = {
         }
     },
 
-    login: async (req, res, next) => {
+    async login(req, res, next) {
         try {
             const { username, password } = await req.body
             const user = await knex('users').where('username', username)
@@ -74,6 +74,12 @@ module.exports = {
         } catch (error) {
             next(error)
         }
+    },
+
+    async logout(req, res, next) {
+        const token = await req.headers['x-access-token']
+
+        return res.json({ auth: false, token: null})
     },
     
 }
