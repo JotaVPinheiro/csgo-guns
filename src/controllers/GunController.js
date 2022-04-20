@@ -1,4 +1,7 @@
 const knex = require('../database')
+
+const handleError = require('../exceptions/handler')
+
 const maxPerPage = 5
 
 module.exports = {
@@ -62,17 +65,22 @@ module.exports = {
     async create(req, res, next) {
         try {
             const data = req.body
-            data.img_path = req.file.filename
+
+            if(req.file)
+                data.img_path = req.file.filename
             
+            if(await knex('guns').where('name', data.name).length > 0)
+                return handleError('already_registered', res)
+
             if(Date.parse(data.release_date) > Date.now())
-                throw new Error("Release date can't be in future time.")
+                return handleError('future_release_date', res)
 
             for(const element in data) {
                 if(data[element] == '')
-                    throw new Error(`${element} can't be null.`)
+                    return handleError('null_property', res, element)
 
                 if(typeof data[element] == 'number' && data[element] <= 0)
-                    throw new Error(`${element} can't be negative or 0.`)
+                    return handleError('negative_value', res, element)
             }
 
             await knex('guns').insert(data)
