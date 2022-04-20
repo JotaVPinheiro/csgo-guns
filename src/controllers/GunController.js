@@ -1,3 +1,4 @@
+require('dotenv').config
 const knex = require('../database')
 
 const handleError = require('../exceptions/handler')
@@ -62,6 +63,7 @@ module.exports = {
             next(error)
         }
     },
+
     async create(req, res, next) {
         try {
             const data = req.body
@@ -89,4 +91,5 @@ module.exports = {
             next(error)
         }
     }
+
 }

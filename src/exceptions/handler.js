@@ -38,6 +38,10 @@ const knownErrors = {
     auth_fail: {
         status: 500,
         message: 'Failed to authenticate token.'
+    },
+    bad_rating: {
+        status: 400,
+        message: 'Rating must be between 0 and 5'
     }
 }
 

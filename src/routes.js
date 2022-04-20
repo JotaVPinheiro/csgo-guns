@@ -5,6 +5,7 @@ const multerConfig = require('./config/multer')
 
 const GunController = require('./controllers/GunController')
 const UserController = require('./controllers/UserController')
+const ReviewController = require('./controllers/ReviewController')
 
 routes
     // Gun routes
@@ -16,5 +17,7 @@ routes
     .post('/login', UserController.login)
     .post('/logout', UserController.logout)
     .get('/auth', UserController.auth)
+    // Review routes
+    .post('/reviews', ReviewController.create)
 
 module.exports = routes
