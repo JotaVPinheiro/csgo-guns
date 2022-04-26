@@ -62,7 +62,7 @@ module.exports = {
             const user = await knex('users').where('username', username)
 
             if(user.length == 0)
-                return handleError('user_not_found', res)
+                return handleError('not_found', res, 'Username')
 
             const rightPassword = await bcrypt.compare(password, user[0].hash_password)
 

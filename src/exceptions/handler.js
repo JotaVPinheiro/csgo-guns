@@ -23,9 +23,9 @@ const knownErrors = {
         status: 400,
         message: 'Invalid email.',
     },
-    user_not_found: {
+    not_found: {
         status: 404,
-        message: 'Username not found.'
+        message: '[param] not found.'
     },
     wrong_password: {
         status: 400,
