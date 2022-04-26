@@ -14,7 +14,6 @@ module.exports = {
     async index(req, res, next) {
         try {
             const params = req.query
-            console.log(params)
             const page = params.page || 1
             const query = knex('users')
                 .limit(maxPerPage)
@@ -87,10 +86,9 @@ module.exports = {
     async auth(req, res, next) {
         try {
             const token = await req.headers['x-access-token']
-            console.log(token)
 
             if(!token)
-                return handleError('no_token', res)
+                return handleError('not_provided', res, 'jwt token')
 
             jwt.verify(token, process.env.secret_key, (err, decoded) => {
                 if(err) {
