@@ -60,6 +60,20 @@ module.exports = {
             }
             
             const results = await query
+
+            for(let i = 0; i < results.length; i++) {
+                const reviews = await knex('reviews')
+                    .where('gun_id', results[i].id)
+
+                let rating = 0
+
+                for(review of reviews) {
+                    rating += review.rating
+                }
+
+                results[i].rating = rating/reviews.length
+            }
+            
             return res.json(results)
         } catch (error) {
             next(error)
