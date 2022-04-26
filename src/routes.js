@@ -20,5 +20,6 @@ routes
     // Review routes
     .get('/reviews', ReviewController.index)
     .post('/reviews', ReviewController.create)
+    .delete('/reviews', ReviewController.delete)
 
 module.exports = routes

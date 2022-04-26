@@ -71,7 +71,10 @@ module.exports = {
             const data = req.body
             const token = await req.headers['x-access-token']
 
-            const user = jwt.decode(token, process.env.secret_key)
+            const user = jwt.verify(token, process.env.secret_key)
+
+            if(!token)
+                return handleError('not_provided', res, 'jwt token')
 
             if(!user)
                 return handleError('auth_fail', res)
