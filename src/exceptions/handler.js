@@ -41,11 +41,15 @@ const knownErrors = {
     },
     bad_rating: {
         status: 400,
-        message: 'Rating must be between 0 and 5'
+        message: 'Rating must be between 0 and 5.'
     },
     no_gun_id: {
         status: 400,
-        message: 'No gun_id provided'
+        message: 'No gun_id provided.'
+    },
+    access_denied: {
+        status: 403,
+        message: 'Access denied.'
     }
 }
 

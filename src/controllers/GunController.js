@@ -1,7 +1,9 @@
 require('dotenv').config
 const knex = require('../database')
+const jwt = require('jsonwebtoken')
 
 const handleError = require('../exceptions/handler')
+const { use } = require('bcrypt/promises')
 
 const maxPerPage = 5
 
@@ -67,6 +69,15 @@ module.exports = {
     async create(req, res, next) {
         try {
             const data = req.body
+            const token = await req.headers['x-access-token']
+
+            const user = jwt.decode(token, process.env.secret_key)
+
+            if(!user)
+                return handleError('auth_fail', res)
+
+            if(!user.is_admin)
+                return handleError('access_denied', res)
 
             if(req.file)
                 data.img_path = req.file.filename
@@ -85,8 +96,8 @@ module.exports = {
                     return handleError('negative_value', res, element)
             }
 
-            await knex('guns').insert(data)
-            return res.status(201).send()
+            // await knex('guns').insert(data)
+            // return res.status(201).send()
         } catch (error) {
             next(error)
         }
