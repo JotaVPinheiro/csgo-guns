@@ -104,6 +104,39 @@ module.exports = {
         } catch (error) {
             next(error)
         }
+    },
+
+    async update(req, res, next) {
+        try {
+            const data = await req.body
+            const { id = 0 } = req.query
+
+            const token = await req.headers['x-access-token']
+
+            const user = jwt.verify(token, process.env.secret_key)
+
+            if(!token)
+                return handleError('not_provided', res, 'jwt token')
+
+            if(!user)
+                return handleError('auth_fail', res)
+
+            if(!user.is_admin)
+                return handleError('access_denied', res)
+
+            if(id == 0)
+                return handleError('not_provided', res, 'id')
+
+            const gun = await knex('guns').where({ id })
+
+            if(gun.length == 0)
+                return handleError('not_found', res, 'Gun')
+
+            await knex('guns').update(data).where({ id })
+            return res.status(201).send()
+        } catch (error) {
+            next(error)
+        }
     }
 
 }

@@ -11,6 +11,7 @@ routes
     // Gun routes
     .get('/guns', GunController.index)
     .post('/guns', multer(multerConfig).single('image'), GunController.create)
+    .put('/guns', GunController.update)
     // User routes
     .get('/users', UserController.index)
     .post('/users', UserController.create)
