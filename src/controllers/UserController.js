@@ -11,7 +11,7 @@ const saltOrRounds = 10
 const expiresIn = 600
 
 module.exports = {
-    async index(req, res, response) {
+    async index(req, res, next) {
         try {
             const params = req.query
             console.log(params)
@@ -37,6 +37,7 @@ module.exports = {
         try {
             try {
                 const { username, email, password } = req.body
+                const is_admin = false
     
                 if(password.length < 6)
                     return handleError('short_password', res)
@@ -45,7 +46,7 @@ module.exports = {
                     return handleError('invalid_email', res)
     
                 const hash_password = await bcrypt.hash(password, saltOrRounds)
-                await knex('users').insert({ username, email, hash_password })
+                await knex('users').insert({ username, email, hash_password, is_admin })
     
                 return res.status(201).send()
             } catch (error) {
@@ -86,6 +87,7 @@ module.exports = {
     async auth(req, res, next) {
         try {
             const token = await req.headers['x-access-token']
+            console.log(token)
 
             if(!token)
                 return handleError('no_token', res)
