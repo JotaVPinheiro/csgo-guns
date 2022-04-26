@@ -31,9 +31,9 @@ const knownErrors = {
         status: 400,
         message: 'Wrong password.'
     },
-    no_token: {
+    not_provided: {
         status: 400,
-        message: 'No token provided.'
+        message: 'No [param] provided'
     },
     auth_fail: {
         status: 500,
@@ -42,10 +42,6 @@ const knownErrors = {
     bad_rating: {
         status: 400,
         message: 'Rating must be between 0 and 5.'
-    },
-    no_gun_id: {
-        status: 400,
-        message: 'No gun_id provided.'
     },
     access_denied: {
         status: 403,
