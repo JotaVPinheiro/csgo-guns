@@ -5,6 +5,15 @@ const jwt = require('jsonwebtoken')
 
 const handleError = require('../exceptions/handler')
 
+const filterProperties = (data) => {
+    const { name, category, release_date, price, used_by, damage, 
+        fire_rate, fire_mode, magazine_capacity, max_ammo, reload_time, 
+        running_speed } = data
+    return { name, category, release_date, price, used_by, damage, 
+        fire_rate, fire_mode, magazine_capacity, max_ammo, reload_time, 
+        running_speed }
+}
+
 module.exports = {
     async index(req, res, next) {
         try {
@@ -57,22 +66,22 @@ module.exports = {
                 return res.json(results)
             }
             
-            const results = await query
+            const guns = await query
 
-            for(let i = 0; i < results.length; i++) {
+            for(let i = 0; i < guns.length; i++) {
                 const reviews = await knex('reviews')
-                    .where('gun_id', results[i].id)
+                    .where('gun_id', guns[i].id)
 
                 let rating = 0
 
-                for(review of reviews) {
+                for(const review of reviews) {
                     rating += review.rating
                 }
 
-                results[i].rating = rating/reviews.length
+                guns[i].rating = rating/reviews.length
             }
             
-            return res.json(results)
+            return res.json(guns)
         } catch (error) {
             next(error)
         }
@@ -80,39 +89,33 @@ module.exports = {
 
     async create(req, res, next) {
         try {
-            const data = req.body
+            const data = filterProperties(req.body)
             const token = await req.headers['x-access-token']
-
             const user = jwt.verify(token, env.secret_key)
 
-            if(!token)
-                return handleError('not_provided', res, 'jwt token')
-
-            if(!user)
-                return handleError('auth_fail', res)
-
+            // Exception handling
             if(!user.is_admin)
                 return handleError('access_denied', res)
-
-            if(req.file)
-                data.img_path = req.file.filename
             
-            if(await knex('guns').where('name', data.name).length > 0)
-                return handleError('already_registered', res)
+            if((await knex('guns').where('name', data.name)).length > 0)
+                return handleError('already_registered', res, 'Gun')
 
             if(Date.parse(data.release_date) > Date.now())
                 return handleError('future_release_date', res)
 
             for(const element in data) {
-                if(data[element] == '')
+                if(!data[element] || data[element] == 0)
                     return handleError('null_property', res, element)
 
-                if(typeof data[element] == 'number' && data[element] <= 0)
+                if(data[element] < 0)
                     return handleError('negative_value', res, element)
-            }
+            } 
 
-            // await knex('guns').insert(data)
-            // return res.status(201).send()
+            if(req.file)
+                data.img_path = req.file.filename
+
+            await knex('guns').insert(data)
+            return res.status(201).send()
         } catch (error) {
             next(error)
         }

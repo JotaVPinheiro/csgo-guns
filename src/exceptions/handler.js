@@ -1,7 +1,7 @@
 const knownErrors = {
     already_registered: {
         status: 400,
-        message: "Gun already registered."
+        message: "[param] already registered."
     },
     future_release_date: {
         status: 400,
@@ -13,7 +13,7 @@ const knownErrors = {
     },
     negative_value: {
         status: 400,
-        message: "[param] can't be negative or 0."
+        message: "[param] can't be negative."
     },
     short_password: {
         status: 400,

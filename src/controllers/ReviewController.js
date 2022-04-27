@@ -5,6 +5,11 @@ const jwt = require('jsonwebtoken')
 
 const handleError = require('../exceptions/handler')
 
+const filterProperties = (data) => {
+    const { rating, message } = data
+    return { rating, message }
+}
+
 module.exports = {
     async index(req, res, next) {
         try {
@@ -25,7 +30,6 @@ module.exports = {
                 query.where('user_id', params.user_id)
 
             const reviews = await query
-    
             return res.json(reviews)
         } catch (error) {
             next(error)   
@@ -34,25 +38,25 @@ module.exports = {
 
     async create(req, res, next) {
         try {
-            const data = req.body
+            const data = filterProperties(req.body)
             const { gun_id = 0 } = req.query
+            const token = await req.headers['x-access-token']
+            const user = jwt.verify(token, env.secret_key)
 
-            if(data.rating < 0 || data.rating > 5)
-                return handleError('bad_rating', res)
-            
+            // Exception handling
             if(gun_id == 0)
                 return handleError('not_provided', res, 'gun_id')
 
-            data.gun_id = gun_id
-            const token = await req.headers['x-access-token']
+            if(data.rating < 0 || data.rating > 5)
+                return handleError('bad_rating', res)
 
-            jwt.verify(token, env.secret_key, (err, decoded) => {
-                if(err) {
-                    return handleError('auth_fail', res)
-                } else {
-                    data.user_id = decoded.id
-                }
-            })
+            for(const property in data) {
+                if(!data[property])
+                    return handleError('null_property', res, property)
+            }
+
+            data.gun_id = gun_id
+            data.user_id = user.id
 
             await knex('reviews').insert(data)
             return res.status(201).send()

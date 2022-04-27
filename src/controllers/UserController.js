@@ -6,6 +6,11 @@ const bcrypt = require('bcrypt')
 
 const handleError = require('../exceptions/handler')
 
+const filterProperties = (data) => {
+    const { username, email, password } = data
+    return { username, email, password }
+}
+
 const validEmail = /^.+@.+\..+$/
 const saltOrRounds = 10
 const expiresIn = 600
@@ -22,12 +27,12 @@ module.exports = {
             // Filtering
             if(params.id) {
                 query.where('id', params.id)
-                const results = await query
-                return res.json(results)
+                const users = await query
+                return res.json(users)
             }
 
-            const results = await query
-            return res.json(results)
+            const users = await query
+            return res.json(users)
         } catch (error) {
             next(error)
         }
@@ -35,23 +40,28 @@ module.exports = {
 
     async create(req, res, next) {
         try {
-            try {
-                const { username, email, password } = req.body
-                const is_admin = false
-    
-                if(password.length < 6)
-                    return handleError('short_password', res)
-    
-                if(!validEmail.test(email))
-                    return handleError('invalid_email', res)
-    
-                const hash_password = await bcrypt.hash(password, saltOrRounds)
-                await knex('users').insert({ username, email, hash_password, is_admin })
-    
-                return res.status(201).send()
-            } catch (error) {
-                next(error)
+            const data = filterProperties(req.body)
+
+            // Exception handling
+            if((await knex('users').where('username', data.username)).length > 0)
+                return handleError('already_registered', res, 'Username')
+
+            if(password.length < 6)
+                return handleError('short_password', res)
+
+            if(!validEmail.test(email))
+                return handleError('invalid_email', res)
+
+            for(const property in data) {
+                if(!data[property])
+                    return handleError('null_property', res, property)
             }
+    
+            data.is_admin = false
+            data.hash_password = await bcrypt.hash(password, saltOrRounds)
+            
+            await knex('users').insert(data)
+            return res.status(201).send()
         } catch (error) {
             next(error)
         }
