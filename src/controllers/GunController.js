@@ -21,15 +21,8 @@ module.exports = {
             const page = params.page || 1
             
             const query = knex('guns')
-                .limit(env.max_per_page)
-                .offset((page - 1) * env.max_per_page)
             
             // Filtering
-            if(!params) {
-                const results = await query
-                return res.json(results)
-            }
-            
             if(params.id) {
                 query.where('id', params.id)
                 const results = await query
@@ -48,37 +41,32 @@ module.exports = {
                 query.whereLike('used_by', `%${params.used_by}%`)
                 
             // Ordenation
-            if(params.by_price) {
+            if(params.by_price)
                 query.orderBy('price', params.desc ? 'desc' : '')
-                const results = await query
-                return res.json(results)
-            }
-            
-            if(params.by_name) {
+            else if(params.by_name)
                 query.orderBy('name', params.desc ? 'desc' : '')
-                const results = await query
-                return res.json(results)
-            }
-
-            if(params.by_release) {
+            else if(params.by_release)
                 query.orderBy('release_date', params.desc ? 'desc' : '')
-                const results = await query
-                return res.json(results)
-            }
             
+            query
+                .limit(env.max_per_page)
+                .offset((page - 1) * env.max_per_page)
+
             const guns = await query
 
-            for(let i = 0; i < guns.length; i++) {
+            for(const index in guns) {
                 const reviews = await knex('reviews')
-                    .where('gun_id', guns[i].id)
-
+                    .where('gun_id', guns[index].id)
+                
                 let rating = 0
 
                 for(const review of reviews) {
                     rating += review.rating
                 }
 
-                guns[i].rating = rating/reviews.length
+                guns[index].rating = rating
+                                    ? (rating/reviews.length).toFixed(1)
+                                    : 'none'
             }
             
             return res.json(guns)

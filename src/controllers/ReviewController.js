@@ -22,12 +22,14 @@ module.exports = {
 
             const query = knex('reviews')
                 .where('gun_id', params.gun_id)
-                .limit(env.max_per_page)
-                .offset((page - 1) * env.max_per_page)
 
             // Filtering
             if(params.user_id)
                 query.where('user_id', params.user_id)
+
+            query
+                .limit(env.max_per_page)
+                .offset((page - 1) * env.max_per_page)
 
             const reviews = await query
             return res.json(reviews)

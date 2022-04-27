@@ -21,8 +21,6 @@ module.exports = {
             const params = req.query
             const page = params.page || 1
             const query = knex('users')
-                .limit(env.max_per_page)
-                .offset((page - 1) * env.max_per_page)
             
             // Filtering
             if(params.id) {
@@ -30,6 +28,10 @@ module.exports = {
                 const users = await query
                 return res.json(users)
             }
+
+            query
+                .limit(env.max_per_page)
+                .offset((page - 1) * env.max_per_page)
 
             const users = await query
             return res.json(users)
