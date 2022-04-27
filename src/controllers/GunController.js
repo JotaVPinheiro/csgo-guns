@@ -65,8 +65,8 @@ module.exports = {
                 }
 
                 guns[index].rating = rating
-                                    ? (rating/reviews.length).toFixed(1)
-                                    : 'none'
+                                     ? (rating/reviews.length).toFixed(1)
+                                     : 'none'
             }
             
             return res.json(guns)
