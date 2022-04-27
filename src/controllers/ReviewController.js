@@ -9,17 +9,22 @@ const maxPerPage = 5
 module.exports = {
     async index(req, res, next) {
         try {
-            const { gun_id = 0, page = 1 } = await req.query
+            const { gun_id = 0, page = 1, user_id } = await req.query
     
             if(gun_id == 0)
                 return handleError('not_provided', res, 'gun_id')
                 
-            const gun_reviews = await knex('reviews')
+            const query = knex('reviews')
                 .where({ gun_id })
                 .limit(maxPerPage)
                 .offset((page - 1) * maxPerPage)
+
+            if(user_id)
+                query.where({ user_id })
+
+            const reviews = await query
     
-            return res.json(gun_reviews)
+            return res.json(reviews)
         } catch (error) {
             next(error)   
         }
