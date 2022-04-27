@@ -78,7 +78,7 @@ module.exports = {
     async create(req, res, next) {
         try {
             const data = filterProperties(req.body)
-            const token = await req.headers['x-access-token']
+            const token = req.headers['x-access-token']
             const user = jwt.verify(token, env.secret_key)
 
             // Exception handling
@@ -111,19 +111,12 @@ module.exports = {
 
     async update(req, res, next) {
         try {
-            const data = await req.body
+            const data = filterProperties(req.body)
             const { id = 0 } = req.query
-
-            const token = await req.headers['x-access-token']
-
+            const token = req.headers['x-access-token']
             const user = jwt.verify(token, env.secret_key)
 
-            if(!token)
-                return handleError('not_provided', res, 'jwt token')
-
-            if(!user)
-                return handleError('auth_fail', res)
-
+            // Exception handling
             if(!user.is_admin)
                 return handleError('access_denied', res)
 
@@ -132,6 +125,7 @@ module.exports = {
 
             const gun = await knex('guns').where({ id })
 
+            // Exception handling
             if(gun.length == 0)
                 return handleError('not_found', res, 'Gun')
 
@@ -146,16 +140,8 @@ module.exports = {
     async delete(req, res, next) {
         try {
             const { id = 0 } = req.query
-
-            const token = await req.headers['x-access-token']
-
+            const token = req.headers['x-access-token']
             const user = jwt.verify(token, env.secret_key)
-
-            if(!token)
-                return handleError('not_provided', res, 'jwt token')
-
-            if(!user)
-                return handleError('auth_fail', res)
 
             if(!user.is_admin)
                 return handleError('access_denied', res)

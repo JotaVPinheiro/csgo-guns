@@ -42,7 +42,7 @@ module.exports = {
         try {
             const data = filterProperties(req.body)
             const { gun_id = 0 } = req.query
-            const token = await req.headers['x-access-token']
+            const token = req.headers['x-access-token']
             const user = jwt.verify(token, env.secret_key)
 
             // Exception handling
@@ -69,11 +69,13 @@ module.exports = {
 
     async delete(req, res, next) {
         try {
-            const token = await req.headers['x-access-token']
             const { id = 0 } = req.query
-
+            const token = req.headers['x-access-token']
             const user = jwt.verify(token, env.secret_key)
             const review = await knex('reviews').where({ id })
+            
+            if(review.length == 0)
+                return handleError('not_found', res, 'Review')
 
             if(!user.is_admin && user.id != review[0].user_id)
                 return handleError('access_denied', res)
@@ -81,9 +83,6 @@ module.exports = {
             if(id == 0)
                 return handleError('not_provided', res, 'id')
 
-            if(review.length == 0)
-                return handleError('not_found', res, 'Review')
-            
             await knex('reviews').where({ id }).del()
             return res.status(201).send()
         } catch (error) {

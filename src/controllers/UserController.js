@@ -13,7 +13,8 @@ const filterProperties = (data) => {
 
 const validEmail = /^.+@.+\..+$/
 const saltOrRounds = 10
-const expiresIn = 600
+const expiresIn = 60 * 60
+const expiredTokens = []
 
 module.exports = {
     async index(req, res, next) {
@@ -71,7 +72,7 @@ module.exports = {
 
     async login(req, res, next) {
         try {
-            const { username, password } = await req.body
+            const { username, password } = req.body
             const user = await knex('users').where('username', username)
 
             if(user.length == 0)
@@ -91,25 +92,29 @@ module.exports = {
     },
 
     async logout(req, res, next) {
-        const token = await req.headers['x-access-token']
+        const token = req.headers['x-access-token']
+        expiredTokens.push(token)
 
         return res.json({ auth: false, token: null})
     },
 
     async auth(req, res, next) {
         try {
-            const token = await req.headers['x-access-token']
+            const token = req.headers['x-access-token']
 
             if(!token)
                 return handleError('not_provided', res, 'jwt token')
 
-            jwt.verify(token, env.secret_key, (err, decoded) => {
-                if(err) {
-                    return handleError('auth_fail', res)
-                } else {
-                    return res.status(200).send()
-                }
+            if(expiredTokens.indexOf(token) >= 0)
+                return res.status(403).send()
+
+            jwt.verify(token, env.secret_key, (error, decoded) => {
+                if(error)
+                    next(error)
+                
+                return res.status(200).send()
             })
+
         } catch (error) {
             next(error)
         }
