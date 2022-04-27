@@ -3,7 +3,6 @@ const knex = require('../database')
 const jwt = require('jsonwebtoken')
 
 const handleError = require('../exceptions/handler')
-const { handle } = require('express/lib/application')
 
 const maxPerPage = 5
 
@@ -58,17 +57,16 @@ module.exports = {
     async delete(req, res, next) {
         try {
             const token = await req.headers['x-access-token']
-            const user = jwt.verify(token, process.env.secret_key)
-
-            if(!user.is_admin)
-                return handleError('access_denied', res)
-            
             const { id = 0 } = req.query
+
+            const user = jwt.verify(token, process.env.secret_key)
+            const review = await knex('reviews').where({ id })
+
+            if(!user.is_admin && user.id != review[0].user_id)
+                return handleError('access_denied', res)
 
             if(id == 0)
                 return handleError('not_provided', res, 'id')
-
-            const review = await knex('reviews').where({ id })
 
             if(review.length == 0)
                 return handleError('not_found', res, 'Review')
