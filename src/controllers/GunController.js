@@ -3,7 +3,6 @@ const knex = require('../database')
 const jwt = require('jsonwebtoken')
 
 const handleError = require('../exceptions/handler')
-const { use } = require('bcrypt/promises')
 
 const maxPerPage = 5
 
@@ -146,6 +145,7 @@ module.exports = {
             if(gun.length == 0)
                 return handleError('not_found', res, 'Gun')
 
+            data.updated_at = new Date()
             await knex('guns').update(data).where({ id })
             return res.status(201).send()
         } catch (error) {
