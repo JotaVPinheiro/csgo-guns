@@ -1,12 +1,12 @@
 require('dotenv').config
+const env = process.env
 const knex = require('../database')
-const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
+const bcrypt = require('bcrypt')
 
 const handleError = require('../exceptions/handler')
 
 const validEmail = /^.+@.+\..+$/
-const maxPerPage = 5
 const saltOrRounds = 10
 const expiresIn = 600
 
@@ -16,9 +16,10 @@ module.exports = {
             const params = req.query
             const page = params.page || 1
             const query = knex('users')
-                .limit(maxPerPage)
-                .offset((page - 1) * maxPerPage)
+                .limit(env.max_per_page)
+                .offset((page - 1) * env.max_per_page)
             
+            // Filtering
             if(params.id) {
                 query.where('id', params.id)
                 const results = await query
@@ -69,7 +70,7 @@ module.exports = {
             if(!rightPassword) {
                 return handleError('wrong_password', res)
             } else {
-                const token = jwt.sign(user[0], process.env.secret_key, { expiresIn })
+                const token = jwt.sign(user[0], env.secret_key, { expiresIn })
                 return res.json({ auth: true, token })
             }
         } catch (error) {
@@ -90,7 +91,7 @@ module.exports = {
             if(!token)
                 return handleError('not_provided', res, 'jwt token')
 
-            jwt.verify(token, process.env.secret_key, (err, decoded) => {
+            jwt.verify(token, env.secret_key, (err, decoded) => {
                 if(err) {
                     return handleError('auth_fail', res)
                 } else {

@@ -1,21 +1,21 @@
 require('dotenv').config
+const env = process.env
 const knex = require('../database')
 const jwt = require('jsonwebtoken')
 
 const handleError = require('../exceptions/handler')
 
-const maxPerPage = 5
-
 module.exports = {
     async index(req, res, next) {
         try {
             const params = req.query
-            console.log(params)
             const page = params.page || 1
+            
             const query = knex('guns')
-                .limit(maxPerPage)
-                .offset((page - 1) * maxPerPage)
-
+                .limit(env.max_per_page)
+                .offset((page - 1) * env.max_per_page)
+            
+            // Filtering
             if(!params) {
                 const results = await query
                 return res.json(results)
@@ -27,7 +27,6 @@ module.exports = {
                 return res.json(results)
             }
             
-            // Filtering
             if(params.name)
                 query.whereILike('name', `${params.name}%`)
             if(params.max_price)
@@ -84,7 +83,7 @@ module.exports = {
             const data = req.body
             const token = await req.headers['x-access-token']
 
-            const user = jwt.verify(token, process.env.secret_key)
+            const user = jwt.verify(token, env.secret_key)
 
             if(!token)
                 return handleError('not_provided', res, 'jwt token')
@@ -126,7 +125,7 @@ module.exports = {
 
             const token = await req.headers['x-access-token']
 
-            const user = jwt.verify(token, process.env.secret_key)
+            const user = jwt.verify(token, env.secret_key)
 
             if(!token)
                 return handleError('not_provided', res, 'jwt token')
@@ -159,7 +158,7 @@ module.exports = {
 
             const token = await req.headers['x-access-token']
 
-            const user = jwt.verify(token, process.env.secret_key)
+            const user = jwt.verify(token, env.secret_key)
 
             if(!token)
                 return handleError('not_provided', res, 'jwt token')
