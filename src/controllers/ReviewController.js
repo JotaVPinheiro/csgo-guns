@@ -3,7 +3,7 @@ const env = process.env
 const knex = require('../database')
 const jwt = require('jsonwebtoken')
 
-const handleError = require('../exceptions/handler')
+const formatError = require('../exceptions/formatError')
 
 const filterProperties = (data) => {
     const { rating, message } = data
@@ -18,7 +18,7 @@ module.exports = {
 
             // Exeption handling
             if(params.gun_id == 0)
-                return handleError('not_provided', res, 'gun_id')
+                throw formatError('not_provided', 'gun_id')
 
             const query = knex('reviews')
                 .where('gun_id', params.gun_id)
@@ -47,14 +47,14 @@ module.exports = {
 
             // Exception handling
             if(gun_id == 0)
-                return handleError('not_provided', res, 'gun_id')
+                throw formatError('not_provided', 'gun_id')
 
             if(data.rating < 0 || data.rating > 5)
-                return handleError('bad_rating', res)
+                throw formatError('bad_rating')
 
             for(const property in data) {
                 if(!data[property])
-                    return handleError('null_property', res, property)
+                    throw formatError('null_property', property)
             }
 
             data.gun_id = gun_id
@@ -75,13 +75,13 @@ module.exports = {
             const review = await knex('reviews').where({ id })
             
             if(review.length == 0)
-                return handleError('not_found', res, 'Review')
+                throw formatError('not_found', 'Review')
 
             if(!user.is_admin && user.id != review[0].user_id)
-                return handleError('access_denied', res)
+                throw formatError('access_denied')
 
             if(id == 0)
-                return handleError('not_provided', res, 'id')
+                throw formatError('not_provided', 'id')
 
             await knex('reviews').where({ id }).del()
             return res.status(201).send()

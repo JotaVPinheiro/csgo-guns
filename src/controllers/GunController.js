@@ -3,7 +3,7 @@ const env = process.env
 const knex = require('../database')
 const jwt = require('jsonwebtoken')
 
-const handleError = require('../exceptions/handler')
+const formatError = require('../exceptions/formatError')
 
 const filterProperties = (data) => {
     const { name, category, release_date, price, used_by, damage, 
@@ -83,20 +83,20 @@ module.exports = {
 
             // Exception handling
             if(!user.is_admin)
-                return handleError('access_denied', res)
+                throw formatError('access_denied')
             
             if((await knex('guns').where('name', data.name)).length > 0)
-                return handleError('already_registered', res, 'Gun')
+                throw formatError('already_registered', 'Gun')
 
             if(Date.parse(data.release_date) > Date.now())
-                return handleError('future_release_date', res)
+                throw formatError('future_release_date')
 
             for(const element in data) {
                 if(!data[element] || data[element] == 0)
-                    return handleError('null_property', res, element)
+                    throw formatError('null_property', element)
 
                 if(data[element] < 0)
-                    return handleError('negative_value', res, element)
+                    throw formatError('negative_value', element)
             } 
 
             if(req.file)
@@ -118,16 +118,16 @@ module.exports = {
 
             // Exception handling
             if(!user.is_admin)
-                return handleError('access_denied', res)
+                throw formatError('access_denied')
 
             if(id == 0)
-                return handleError('not_provided', res, 'id')
+                throw formatError('not_provided', 'id')
 
             const gun = await knex('guns').where({ id })
 
             // Exception handling
             if(gun.length == 0)
-                return handleError('not_found', res, 'Gun')
+                throw formatError('not_found', 'Gun')
 
             data.updated_at = new Date()
             await knex('guns').update(data).where({ id })
@@ -144,15 +144,15 @@ module.exports = {
             const user = jwt.verify(token, env.secret_key)
 
             if(!user.is_admin)
-                return handleError('access_denied', res)
+                throw formatError('access_denied')
 
             if(id == 0)
-                return handleError('not_provided', res, 'id')
+                throw formatError('not_provided', 'id')
 
             const gun = await knex('guns').where({ id })
 
             if(gun.length == 0)
-                return handleError('not_found', res, 'Gun')
+                throw formatError('not_found', 'Gun')
 
             await knex('guns').where({ id }).del()
             return res.status(201).send()

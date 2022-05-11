@@ -45,14 +45,17 @@ const knownErrors = {
     }
 }
 
-const handleError = async (err, res, param = '') => {
+const formatError = async (err, param = '') => {
     if(!knownErrors[err])
-        return res.status(500).json({ error: 'Error in handler.js' })
+        return new Error('Error in handler.js')
 
     const status = knownErrors[err].status
     const message = knownErrors[err].message.replace('[param]', param)
 
-    return res.status(status).json({ error: message })
+    const error = new Error(message)
+    error.status = status
+
+    return error
 }
 
-module.exports = handleError
+module.exports = formatError

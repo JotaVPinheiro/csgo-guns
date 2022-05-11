@@ -4,7 +4,7 @@ const knex = require('../database')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 
-const handleError = require('../exceptions/handler')
+const formatError = require('../exceptions/formatError')
 
 const filterProperties = (data) => {
     const { username, email, password } = data
@@ -47,17 +47,17 @@ module.exports = {
 
             // Exception handling
             if((await knex('users').where('username', data.username)).length > 0)
-                return handleError('already_registered', res, 'Username')
+                throw formatError('already_registered', 'Username')
 
             if(password.length < 6)
-                return handleError('short_password', res)
+                throw formatError('short_password')
 
             if(!validEmail.test(email))
-                return handleError('invalid_email', res)
+                throw formatError('invalid_email')
 
             for(const property in data) {
                 if(!data[property])
-                    return handleError('null_property', res, property)
+                    throw formatError('null_property', property)
             }
     
             data.is_admin = false
@@ -76,12 +76,12 @@ module.exports = {
             const user = await knex('users').where('username', username)
 
             if(user.length == 0)
-                return handleError('not_found', res, 'Username')
+                throw formatError('not_found', 'Username')
 
             const rightPassword = await bcrypt.compare(password, user[0].hash_password)
 
             if(!rightPassword) {
-                return handleError('wrong_password', res)
+                throw formatError('wrong_password')
             } else {
                 const token = jwt.sign(user[0], env.secret_key, { expiresIn })
                 return res.json({ auth: true, token })
@@ -103,7 +103,7 @@ module.exports = {
             const token = req.headers['x-access-token']
 
             if(!token)
-                return handleError('not_provided', res, 'jwt token')
+                throw formatError('not_provided', 'jwt token')
 
             if(expiredTokens.indexOf(token) >= 0)
                 return res.status(403).send()
