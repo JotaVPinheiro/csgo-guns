@@ -11,7 +11,7 @@ model Gun {
   id                String    @id @default(uuid())
   name              String    @unique
   category          String
-  release_date      DateTime?
+  release_date      DateTime? @db.Date()
   price             Int
   used_by           String
   damage            Int
