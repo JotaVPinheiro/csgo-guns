@@ -14,7 +14,7 @@ model Gun {
   release_date      DateTime?
   price             Int
   used_by           String
-  damage            String
+  damage            Int
   fire_rate         Float
   fire_mode         String
   magazine_capacity Int
