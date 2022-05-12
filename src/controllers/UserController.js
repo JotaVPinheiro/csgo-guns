@@ -5,8 +5,8 @@ const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 
 const filterProperties = (data) => {
-  const { username, email, password } = data
-  return { username, email, password }
+  const { username, email, password: hash_password } = data
+  return { username, email, hash_password }
 }
 
 const validEmail = /^.+@.+\..+$/
@@ -50,10 +50,10 @@ module.exports = {
       if ((await knex('users').where('email', data.email)).length > 0)
         throw new Error('E-mail already registered.')
 
-      if (password.length < 6)
+      if (data.hash_password.length < 6)
         throw new Error('Password needs to be at least 6 characters long.')
 
-      if (!validEmail.test(email))
+      if (!validEmail.test(data.email))
         throw new Error('Invalid e-mail.')
 
       for (const property in data) {
@@ -62,7 +62,7 @@ module.exports = {
       }
 
       data.is_admin = false
-      data.hash_password = await bcrypt.hash(password, saltOrRounds)
+      data.hash_password = await bcrypt.hash(data.hash_password, saltOrRounds)
 
       await knex('users').insert(data)
       return res.status(201).send()
