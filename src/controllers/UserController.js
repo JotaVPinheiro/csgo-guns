@@ -1,12 +1,13 @@
 require('dotenv').config
+
 const env = process.env
 const knex = require('../database')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 
 const filterProperties = (data) => {
-  const { username, email, password: hash_password } = data
-  return { username, email, hash_password }
+  const { username, email, password } = data
+  return { username, email, password }
 }
 
 const validEmail = /^.+@.+\..+$/
@@ -50,7 +51,7 @@ module.exports = {
       if ((await knex('users').where('email', data.email)).length > 0)
         throw new Error('E-mail already registered.')
 
-      if (data.hash_password.length < 6)
+      if (data.password.length < 6)
         throw new Error('Password needs to be at least 6 characters long.')
 
       if (!validEmail.test(data.email))
@@ -62,7 +63,7 @@ module.exports = {
       }
 
       data.is_admin = false
-      data.hash_password = await bcrypt.hash(data.hash_password, saltOrRounds)
+      data.password = await bcrypt.hash(data.password, saltOrRounds)
 
       await knex('users').insert(data)
       return res.status(201).send()
@@ -79,7 +80,7 @@ module.exports = {
       if (user.length == 0)
         throw new Error('Username not found.')
 
-      const rightPassword = await bcrypt.compare(password, user[0].hash_password)
+      const rightPassword = await bcrypt.compare(password, user[0].password)
 
       if (!rightPassword) {
         throw new Error('Wrong password.')
