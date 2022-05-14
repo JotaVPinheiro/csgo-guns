@@ -1,11 +1,11 @@
 const express = require("express")
-const routes = express.Router()
+export const routes = express.Router()
 const multer = require('multer')
-const multerConfig = require('./config/multer')
+import { multerConfig } from "./config/multer";
 
-const GunController = require('./controllers/GunController')
-const UserController = require('./controllers/UserController')
-const ReviewController = require('./controllers/ReviewController')
+import { GunController } from "./controllers/GunController";
+import { UserController } from "./controllers/UserController";
+import { ReviewController } from "./controllers/ReviewController";
 
 routes
   // Gun routes

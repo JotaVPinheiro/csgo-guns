@@ -1,14 +1,21 @@
 require('dotenv').config
-const env = process.env
 const knex = require('../database')
 const jwt = require('jsonwebtoken')
 
 const filterProperties = (data) => {
   const { rating, message } = data
-  return { rating, message }
+  return { rating, message, user_id: 0, gun_id: 0 }
 }
 
-module.exports = {
+interface Review {
+  rating: number
+  message?: string
+  user_id: number
+  gun_id: number
+}
+
+// module.exports = {
+export const ReviewController = {
   async index(req, res, next) {
     try {
       const params = req.query
@@ -26,8 +33,8 @@ module.exports = {
         query.where('user_id', params.user_id)
 
       query
-        .limit(env.max_per_page)
-        .offset((page - 1) * env.max_per_page)
+        .limit(process.env.max_per_page)
+        .offset((page - 1) * Number(process.env.max_per_page))
 
       const reviews = await query
       return res.json(reviews)
@@ -38,10 +45,10 @@ module.exports = {
 
   async create(req, res, next) {
     try {
-      const data = filterProperties(req.body)
+      const data: Review = filterProperties(req.body)
       const { gun_id = 0 } = req.query
       const token = req.headers['x-access-token']
-      const user = jwt.verify(token, env.secret_key)
+      const user = jwt.verify(token, process.env.secret_key)
 
       // Exception handling
       if (gun_id == 0)
@@ -69,7 +76,7 @@ module.exports = {
     try {
       const { id = 0 } = req.query
       const token = req.headers['x-access-token']
-      const user = jwt.verify(token, env.secret_key)
+      const user = jwt.verify(token, process.env.secret_key)
       const review = await knex('reviews').where({ id })
 
       if (review.length == 0)

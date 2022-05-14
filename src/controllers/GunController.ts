@@ -1,20 +1,58 @@
 require('dotenv').config
-const env = process.env
 const knex = require('../database')
 const jwt = require('jsonwebtoken')
 
-const filterProperties = (data) => {
-  const { name, category, release_date, price, used_by, damage,
-    fire_rate, fire_mode, magazine_capacity, max_ammo, reload_time,
-    running_speed } = data
+type GunCategory = 'Pistol' | 'Shotgun' | 'Machine Gun' | 'SMG' | 'Assault Rifle' | 'Sniper Rifle'
+type GunTeam = 'CT' | 'TR' | 'CT and TR'
+type GunFireMode = 'Automatic' | 'Semi-automatic' | 'Pump-action' | 'Burst fire' | 'Bolt-action'
+
+interface Gun {
+  name: string
+  category: GunCategory
+  release_date?: Date | string
+  price: number
+  used_by: GunTeam
+  damage: number
+  fire_rate: number
+  fire_mode: GunFireMode
+  magazine_capacity: number
+  max_ammo: number
+  reload_time: number
+  running_speed: number
+
+  img_path?: string
+}
+
+interface GunUpdate {
+  name?: string
+  category?: GunCategory
+  release_date?: Date | string
+  price?: number
+  used_by?: GunTeam
+  damage?: number
+  fire_rate?: number
+  fire_mode?: GunFireMode
+  magazine_capacity?: number
+  max_ammo?: number
+  reload_time?: number
+  running_speed?: number
+  img_path?: string
+  
+  updated_at: Date
+}
+
+function filterProperties(data: Gun): Gun | GunUpdate {
+  const { 
+    name, category, release_date, price, used_by, damage, fire_rate, fire_mode,
+    magazine_capacity, max_ammo, reload_time, running_speed 
+  } = data
   return {
-    name, category, release_date, price, used_by, damage,
-    fire_rate, fire_mode, magazine_capacity, max_ammo, reload_time,
-    running_speed
+    name, category, release_date, price, used_by, damage, fire_rate, fire_mode,
+    magazine_capacity, max_ammo, reload_time, running_speed 
   }
 }
 
-module.exports = {
+export const GunController = {
   async index(req, res, next) {
     try {
       const params = req.query
@@ -49,8 +87,8 @@ module.exports = {
         query.orderBy('release_date', params.desc ? 'desc' : '')
 
       query
-        .limit(env.max_per_page)
-        .offset((page - 1) * env.max_per_page)
+        .limit(process.env.max_per_page)
+        .offset((page - 1) * Number(process.env.max_per_page))
 
       const guns = await query
 
@@ -77,9 +115,9 @@ module.exports = {
 
   async create(req, res, next) {
     try {
-      const data = filterProperties(req.body)
+      const data: Gun = req.body as Gun
       const token = req.headers['x-access-token']
-      const user = jwt.verify(token, env.secret_key)
+      const user = jwt.verify(token, process.env.secret_key)
 
       // Exception handling
       if (!user.is_admin)
@@ -88,7 +126,7 @@ module.exports = {
       if ((await knex('guns').where('name', data.name)).length > 0)
         throw new Error('Gun name already registered')
 
-      if (Date.parse(data.release_date) > Date.now())
+      if (Date.parse(data.release_date as string) > Date.now())
         throw new Error("Release date can't be in the future.")
 
       for (const element in data) {
@@ -111,10 +149,10 @@ module.exports = {
 
   async update(req, res, next) {
     try {
-      const data = filterProperties(req.body)
+      const data: GunUpdate = filterProperties(req.body) as GunUpdate
       const { id = 0 } = req.query
       const token = req.headers['x-access-token']
-      const user = jwt.verify(token, env.secret_key)
+      const user = jwt.verify(token, process.env.secret_key)
 
       // Exception handling
       if (!user.is_admin)
@@ -141,7 +179,7 @@ module.exports = {
     try {
       const { id = 0 } = req.query
       const token = req.headers['x-access-token']
-      const user = jwt.verify(token, env.secret_key)
+      const user = jwt.verify(token, process.env.secret_key)
 
       if (!user.is_admin)
         throw new Error('Access denied.')

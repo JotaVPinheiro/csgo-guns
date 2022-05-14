@@ -2,6 +2,11 @@ const routes = require('./routes')
 const express = require('express')
 const app = express()
 
+interface Error {
+  status?: number;
+  code?: number;
+}
+
 app
   .use(express.json())
   .use(express.urlencoded({ extended: true }))

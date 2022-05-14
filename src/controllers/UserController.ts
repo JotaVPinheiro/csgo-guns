@@ -1,13 +1,18 @@
 require('dotenv').config
-
-const env = process.env
 const knex = require('../database')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 
-const filterProperties = (data) => {
+interface User {
+  username: string
+  email: string
+  password: string
+  is_admin: boolean
+}
+
+const filterProperties = (data: User): User => {
   const { username, email, password } = data
-  return { username, email, password }
+  return { username, email, password, is_admin: false }
 }
 
 const validEmail = /^.+@.+\..+$/
@@ -15,7 +20,7 @@ const saltOrRounds = 10
 const expiresIn = 60 * 60
 const expiredTokens = []
 
-module.exports = {
+export const UserController = {
   async index(req, res, next) {
     try {
       const params = req.query
@@ -30,8 +35,8 @@ module.exports = {
       }
 
       query
-        .limit(env.max_per_page)
-        .offset((page - 1) * env.max_per_page)
+        .limit(process.env.max_per_page)
+        .offset((page - 1) * Number(process.env.max_per_page))
 
       const users = await query
       return res.json(users)
@@ -62,7 +67,6 @@ module.exports = {
           throw new Error(`${property} can't be null.`)
       }
 
-      data.is_admin = false
       data.password = await bcrypt.hash(data.password, saltOrRounds)
 
       await knex('users').insert(data)
@@ -85,7 +89,7 @@ module.exports = {
       if (!rightPassword) {
         throw new Error('Wrong password.')
       } else {
-        const token = jwt.sign(user[0], env.secret_key, { expiresIn })
+        const token = jwt.sign(user[0], process.env.secret_key, { expiresIn })
         return res.json({ auth: true, token })
       }
     } catch (error) {
@@ -110,7 +114,7 @@ module.exports = {
       if (expiredTokens.indexOf(token) >= 0)
         return res.status(403).send()
 
-      jwt.verify(token, env.secret_key, (error, decoded) => {
+      jwt.verify(token, process.env.secret_key, (error, decoded) => {
         if (error)
           next(error)
 
