@@ -7,7 +7,7 @@ exports.seed = async function(knex) {
     {
       username: 'jotav',
       email: 'jotav@jotav.com',
-      hash_password: await bcrypt.hash(process.env.password, 10),
+      password: await bcrypt.hash(process.env.password, 10),
       is_admin: true
     }
   ]);
