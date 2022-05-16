@@ -41,7 +41,7 @@ interface GunUpdate {
   updated_at: Date
 }
 
-function filterProperties(data: Gun): Gun | GunUpdate {
+function filterProperties(data: Gun | GunUpdate): Gun | GunUpdate {
   const { 
     name, category, release_date, price, used_by, damage, fire_rate, fire_mode,
     magazine_capacity, max_ammo, reload_time, running_speed 
@@ -115,7 +115,7 @@ export const GunController = {
 
   async create(req, res, next) {
     try {
-      const data: Gun = req.body as Gun
+      const data: Gun = filterProperties(req.body) as Gun
       const token = req.headers['x-access-token']
       const user = jwt.verify(token, process.env.secret_key)
 

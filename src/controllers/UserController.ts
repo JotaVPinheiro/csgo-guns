@@ -17,7 +17,7 @@ const filterProperties = (data: User): User => {
 
 const validEmail = /^.+@.+\..+$/
 const saltOrRounds = 10
-const expiresIn = 60 * 60
+const expiresIn = '1h'
 const expiredTokens = []
 
 export const UserController = {
