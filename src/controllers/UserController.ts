@@ -3,11 +3,21 @@ const knex = require('../database')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 
+import { PrismaClient } from "@prisma/client"
+const prisma = new PrismaClient()
+
 interface User {
   username: string
   email: string
   password: string
   is_admin: boolean
+}
+
+function checkForNullValues(data: User): void{
+  for(let key in data) {
+    if(data[key] == null || data[key] == undefined)
+      throw new Error(key + " can't be null.")
+  }
 }
 
 const filterProperties = (data: User): User => {
@@ -21,24 +31,24 @@ const expiresIn = '1h'
 const expiredTokens = []
 
 export const UserController = {
-  async index(req, res, next) {
-    try {
-      const params = req.query
-      const page = params.page || 1
-      const query = knex('users')
 
-      // Filtering
-      if (params.id) {
-        query.where('id', params.id)
-        const users = await query
-        return res.json(users)
+  async index(req, res, next) {
+    const maxPerPage = 10
+
+    try {
+      const { page = 1 } = req.query
+      const pagination = { skip: (page - 1) * maxPerPage, take: maxPerPage }
+      const { id } = req.params
+
+      if (id) {
+        const user: User = await prisma.user.findFirst({ where: { id } })
+        if(!user)
+          throw new Error('User not found!')
+        
+        return res.json(user)
       }
 
-      query
-        .limit(process.env.max_per_page)
-        .offset((page - 1) * Number(process.env.max_per_page))
-
-      const users = await query
+      const users = await prisma.user.findMany({ ...pagination })
       return res.json(users)
     } catch (error) {
       next(error)
@@ -47,13 +57,14 @@ export const UserController = {
 
   async create(req, res, next) {
     try {
-      const data = filterProperties(req.body)
+      const data: User = filterProperties(req.body)
+      checkForNullValues(data)
 
       // Exception handling
-      if ((await knex('users').where('username', data.username)).length > 0)
+      if (await prisma.user.findFirst({ where: { username: data.username } }))
         throw new Error('Username already registered.')
 
-      if ((await knex('users').where('email', data.email)).length > 0)
+      if (await prisma.user.findFirst({ where: { email: data.email } }))
         throw new Error('E-mail already registered.')
 
       if (data.password.length < 6)
@@ -62,14 +73,9 @@ export const UserController = {
       if (!validEmail.test(data.email))
         throw new Error('Invalid e-mail.')
 
-      for (const property in data) {
-        if (!data[property])
-          throw new Error(`${property} can't be null.`)
-      }
-
       data.password = await bcrypt.hash(data.password, saltOrRounds)
 
-      await knex('users').insert(data)
+      await prisma.user.create({ data })
       return res.status(201).send()
     } catch (error) {
       next(error)

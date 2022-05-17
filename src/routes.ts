@@ -14,7 +14,7 @@ routes
   .put('/guns/:id', GunController.update)
   .delete('/guns/:id', GunController.delete)
   // User routes
-  .get('/users/:id', UserController.index)
+  .get('/users/:id?', UserController.index)
   .post('/users', UserController.create)
   .post('/login', UserController.login)
   .post('/logout', UserController.logout)
