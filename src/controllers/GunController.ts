@@ -87,12 +87,10 @@ function filterGunProperties(data: Gun | GunUpdate): Gun | GunUpdate {
     magazine_capacity, max_ammo, reload_time, running_speed,
   } = data
 
-  data = {
+  return {
     name, category, release_date, price, used_by, damage, fire_rate, fire_mode,
     magazine_capacity, max_ammo, reload_time, running_speed,
   }
-  
-  return convertNumericValues(data)
 }
 
 export const GunController = {
@@ -141,7 +139,6 @@ export const GunController = {
       if(id) {
         where.AND.push({ id })
         const gun: Gun = await prisma.gun.findFirst({ where })
-
         if(!gun)
           throw new Error('Gun not found!')
 
@@ -166,9 +163,7 @@ export const GunController = {
       if(sortType)
         orderBy = getOrderBy(sortType)
 
-      // FALTA ADICIONAR A MÉDIAS DAS REVIEWS EM CADA ARMA E A PAGINAÇÃO
-
-      const totalOfGuns: number = await (await prisma.gun.findMany({ where, orderBy })).length
+      const totalOfGuns: number = await (await prisma.gun.findMany({ where })).length
       const guns: Gun[] = await prisma.gun.findMany({ where, orderBy, ...pagination })
       res.header('X-Total-Count', totalOfGuns)
       
@@ -180,7 +175,8 @@ export const GunController = {
 
   async create(req, res, next) {
     try {
-      const data: Gun = filterGunProperties(req.body) as Gun
+      const dataAux: Gun = filterGunProperties(req.body) as Gun
+      const data: Gun = convertNumericValues(dataAux) as Gun
       checkForNullValues(data)
       if(data.release_date)
         data.release_date = new Date(data.release_date)
@@ -211,24 +207,23 @@ export const GunController = {
     try {
       const data: GunUpdate = filterGunProperties(req.body) as GunUpdate
       const { id } = req.params
-      const token = req.headers['x-access-token']
-      const user = jwt.verify(token, process.env.secret_key)
+      // const token = req.headers['x-access-token']
+      // const user = jwt.verify(token, process.env.secret_key)
 
-      // Exception handling
-      if (!user.is_admin)
-        throw new Error('Access denied.')
+      // if (!user.is_admin)
+      //   throw new Error('Access denied.')
 
-      if (id == 0)
+      if (id == undefined)
         throw new Error('No id provided.')
 
-      const gun = await knex('guns').where({ id })
+      const gun: Gun = await prisma.gun.findFirst({ where: { id } })
 
-      // Exception handling
-      if (gun.length == 0)
+      if (gun == null)
         throw new Error('Gun not found.')
 
       data.updated_at = new Date()
-      await knex('guns').update(data).where({ id })
+
+      await prisma.gun.update({ where: { id }, data: { ...data } })
       return res.status(201).send()
     } catch (error) {
       next(error)
