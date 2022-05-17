@@ -1,8 +1,7 @@
 require('dotenv').config
-const knex = require('../database')
 const jwt = require('jsonwebtoken')
 
-import { Prisma, PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 type GunCategory = 'Pistol' | 'Shotgun' | 'Machine Gun' | 'SMG' | 'Assault Rifle' | 'Sniper Rifle'
@@ -232,22 +231,22 @@ export const GunController = {
 
   async delete(req, res, next) {
     try {
-      const { id = 0 } = req.query
-      const token = req.headers['x-access-token']
-      const user = jwt.verify(token, process.env.secret_key)
+      const { id } = req.params
+      // const token = req.headers['x-access-token']
+      // const user = jwt.verify(token, process.env.secret_key)
 
-      if (!user.is_admin)
-        throw new Error('Access denied.')
+      // if (!user.is_admin)
+      //   throw new Error('Access denied.')
 
-      if (id == 0)
+      if (id == undefined)
         throw new Error('No id provided.')
 
-      const gun = await knex('guns').where({ id })
+      const gun = await prisma.gun.findFirst({ where: { id } })
 
-      if (gun.length == 0)
+      if (gun == null)
         throw new Error('Gun not found.')
 
-      await knex('guns').where({ id }).del()
+      await prisma.gun.delete({ where: { id } })
       return res.status(201).send()
     } catch (error) {
       next(error)
