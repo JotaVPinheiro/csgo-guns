@@ -2,19 +2,22 @@ require('dotenv').config
 const knex = require('../database')
 const jwt = require('jsonwebtoken')
 
+import { Prisma, PrismaClient } from "@prisma/client";
+const prisma = new PrismaClient();
+
 type GunCategory = 'Pistol' | 'Shotgun' | 'Machine Gun' | 'SMG' | 'Assault Rifle' | 'Sniper Rifle'
-type GunTeam = 'CT' | 'TR' | 'CT and TR'
+type GunTeam = 'CT' | 'TR' | 'CTandTR'
 type GunFireMode = 'Automatic' | 'Semi-automatic' | 'Pump-action' | 'Burst fire' | 'Bolt-action'
 
 interface Gun {
   name: string
-  category: GunCategory
-  release_date?: Date | string
+  category: string
+  release_date?: Date | null
   price: number
-  used_by: GunTeam
+  used_by: string
   damage: number
   fire_rate: number
-  fire_mode: GunFireMode
+  fire_mode: string
   magazine_capacity: number
   max_ammo: number
   reload_time: number
@@ -26,7 +29,7 @@ interface Gun {
 interface GunUpdate {
   name?: string
   category?: GunCategory
-  release_date?: Date | string
+  release_date?: Date | null
   price?: number
   used_by?: GunTeam
   damage?: number
@@ -38,75 +41,137 @@ interface GunUpdate {
   running_speed?: number
   img_path?: string
   
-  updated_at: Date
+  updated_at?: Date
 }
 
-function filterProperties(data: Gun | GunUpdate): Gun | GunUpdate {
-  const { 
-    name, category, release_date, price, used_by, damage, fire_rate, fire_mode,
-    magazine_capacity, max_ammo, reload_time, running_speed 
-  } = data
-  return {
-    name, category, release_date, price, used_by, damage, fire_rate, fire_mode,
-    magazine_capacity, max_ammo, reload_time, running_speed 
+function checkForNullValues(data: Gun | GunUpdate): void{
+  const nullableProperties = ['release_date']
+
+  for(let key in data) {
+    if(nullableProperties.includes(key))
+      continue
+
+    if(data[key] == null || data[key] == undefined)
+      throw new Error(key + " can't be null.")
   }
 }
 
+function convertNumericValues(data: Gun | GunUpdate): Gun | GunUpdate {
+  const numericValuesKeys = [
+    'price', 'damage', 'fire_rate', 'magazine_capacity', 'max_ammo', 
+    'reload_time', 'running_speed'
+  ]
+
+  for(let key in data) {
+    if(!numericValuesKeys.includes(key))
+      continue
+
+    data[key] = Number(data[key])
+
+    if(data[key] == 0)
+      throw new Error(key + " can't be zero.")
+
+    if(!data[key])
+      throw new Error(key + ' needs to be a numeric value.')
+      
+    if(data[key] <= 0)
+      throw new Error(key + " can't be negative.")
+  }
+
+  return data;
+}
+
+function filterGunProperties(data: Gun | GunUpdate): Gun | GunUpdate {
+  const {
+    name, category, release_date, price, used_by, damage, fire_rate, fire_mode,
+    magazine_capacity, max_ammo, reload_time, running_speed,
+  } = data
+
+  data = {
+    name, category, release_date, price, used_by, damage, fire_rate, fire_mode,
+    magazine_capacity, max_ammo, reload_time, running_speed,
+  }
+  
+  return convertNumericValues(data)
+}
+
 export const GunController = {
+
   async index(req, res, next) {
+    const maxPerPage = 10
+
+    function getOrderBy(sortType: string): object {
+      if(sortType == 'price_asc')
+        return { price: 'asc' }
+
+      if(sortType == 'price_desc')
+        return { price: 'desc' }
+        
+      if(sortType == 'name_asc')
+        return { name: 'asc' }
+
+      if(sortType == 'name_desc')
+        return { name: 'desc' }
+      
+      if(sortType == 'release_date_asc')
+        return { release_date: 'asc' }
+
+      if(sortType == 'release_date_desc')
+        return { release_date: 'desc' }
+
+      return {}
+    }
+
     try {
-      const params = req.query
-      const page = params.page || 1
+      const { 
+        sortType,
+        maxPrice, 
+        minPrice, 
+        name, 
+        category, 
+        usedBy, 
+        page = 1
+      } = req.query
+      
+      let orderBy
+      let where = { AND: [] }
+      const pagination = { skip: (page - 1) * maxPerPage, take: maxPerPage }
+      const { id } = req.params
 
-      const query = knex('guns')
+      if(id) {
+        where.AND.push({ id })
+        const gun: Gun = await prisma.gun.findFirst({ where })
 
-      // Filtering
-      if (params.id) {
-        query.where('id', params.id)
-        const results = await query
-        return res.json(results)
+        if(!gun)
+          throw new Error('Gun not found!')
+
+        return res.json(gun)
       }
 
-      if (params.name)
-        query.whereILike('name', `${params.name}%`)
-      if (params.max_price)
-        query.where('price', '<=', params.max_price)
-      if (params.min_price)
-        query.where('price', '>=', params.min_price)
-      if (params.category)
-        query.whereLike('category', params.category)
-      if (params.used_by)
-        query.whereLike('used_by', `%${params.used_by}%`)
-
-      // Ordenation
-      if (params.by_price)
-        query.orderBy('price', params.desc ? 'desc' : '')
-      else if (params.by_name)
-        query.orderBy('name', params.desc ? 'desc' : '')
-      else if (params.by_release)
-        query.orderBy('release_date', params.desc ? 'desc' : '')
-
-      query
-        .limit(process.env.max_per_page)
-        .offset((page - 1) * Number(process.env.max_per_page))
-
-      const guns = await query
-
-      for (const index in guns) {
-        const reviews = await knex('reviews')
-          .where('gun_id', guns[index].id)
-
-        let rating = 0
-
-        for (const review of reviews) {
-          rating += review.rating
-        }
-
-        guns[index].rating = rating
-          ? (rating / reviews.length).toFixed(1)
-          : 'none'
+      if(maxPrice)
+        where.AND.push({ price: { lte: Number(maxPrice) } })
+      if(minPrice)
+        where.AND.push({ price: { gte: Number(minPrice) } })
+      if(name)
+        where.AND.push({ name: { contains: name } })
+      if(category)
+        where.AND.push({ category })
+      if(usedBy) {
+        if(usedBy == 'CTandTR')
+          where.AND.push({ OR: [ { used_by: { contains: 'CT' } }, { used_by: { contains: 'TR' } } ] })
+        else
+          where.AND.push({ used_by: { contains: usedBy } })
       }
 
+      if(sortType)
+        orderBy = getOrderBy(sortType)
+
+      // FALTA ADICIONAR A MÉDIAS DAS REVIEWS EM CADA ARMA E A PAGINAÇÃO
+
+      const totalOfGuns: number = await (await prisma.gun.findMany({ where, orderBy })).length
+      const guns: Gun[] = await prisma.gun.findMany({ where, orderBy, ...pagination })
+      res.header('X-Total-Count', totalOfGuns)
+      
       return res.json(guns)
     } catch (error) {
       next(error)
@@ -115,32 +180,27 @@ export const GunController = {
 
   async create(req, res, next) {
     try {
-      const data: Gun = filterProperties(req.body) as Gun
-      const token = req.headers['x-access-token']
-      const user = jwt.verify(token, process.env.secret_key)
+      const data: Gun = filterGunProperties(req.body) as Gun
+      checkForNullValues(data)
+      if(data.release_date)
+        data.release_date = new Date(data.release_date)
 
-      // Exception handling
-      if (!user.is_admin)
-        throw new Error('Access denied.')
+      // const token = req.headers['x-access-token']
+      // const user = jwt.verify(token, process.env.secret_key)
 
-      if ((await knex('guns').where('name', data.name)).length > 0)
+      // if (!user.is_admin)
+      //   throw new Error('Access denied.')
+      
+      if(await prisma.gun.findUnique({ where: { name: data.name } }))
         throw new Error('Gun name already registered')
 
-      if (Date.parse(data.release_date as string) > Date.now())
+      if(data.release_date && data.release_date > new Date())
         throw new Error("Release date can't be in the future.")
-
-      for (const element in data) {
-        if (!data[element] || data[element] == 0)
-          throw new Error(`${element} can't be null.`)
-
-        if (data[element] < 0)
-          throw new Error(`${element} can't be negative.`)
-      }
 
       if (req.file)
         data.img_path = req.file.filename
 
-      await knex('guns').insert(data)
+      await prisma.gun.create({ data })
       return res.status(201).send()
     } catch (error) {
       next(error)
@@ -149,8 +209,8 @@ export const GunController = {
 
   async update(req, res, next) {
     try {
-      const data: GunUpdate = filterProperties(req.body) as GunUpdate
-      const { id = 0 } = req.query
+      const data: GunUpdate = filterGunProperties(req.body) as GunUpdate
+      const { id } = req.params
       const token = req.headers['x-access-token']
       const user = jwt.verify(token, process.env.secret_key)
 

@@ -9,10 +9,10 @@ import { ReviewController } from "./controllers/ReviewController";
 
 routes
   // Gun routes
-  .get('/guns', GunController.index)
+  .get('/guns/:id?', GunController.index)
   .post('/guns', multer(multerConfig).single('image'), GunController.create)
-  .put('/guns', GunController.update)
-  .delete('/guns', GunController.delete)
+  .put('/guns/:id', GunController.update)
+  .delete('/guns/:id', GunController.delete)
   // User routes
   .get('/users', UserController.index)
   .post('/users', UserController.create)
