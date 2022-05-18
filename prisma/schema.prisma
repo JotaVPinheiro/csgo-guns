@@ -44,7 +44,7 @@ model User {
 model Review {
   id         String   @id @default(uuid())
   rating     Float
-  message    String   @db.VarChar(255)
+  message    String?  @db.VarChar(255)
   user_id    String
   User       User     @relation(fields: [user_id], references: [id])
   gun_id     String
