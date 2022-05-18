@@ -16,6 +16,8 @@ routes
   // User routes
   .get('/users/:id?', UserController.index)
   .post('/users', UserController.create)
+  .put('/users/:id', UserController.update)
+  .delete('/users/:id', UserController.delete)
   .post('/login', UserController.login)
   .post('/logout', UserController.logout)
   .get('/auth', UserController.auth)
