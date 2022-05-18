@@ -180,11 +180,11 @@ export const GunController = {
       if(data.release_date)
         data.release_date = new Date(data.release_date)
 
-      // const token = req.headers['x-access-token']
-      // const user = jwt.verify(token, process.env.secret_key)
+      const token = req.headers['x-access-token']
+      const user = jwt.verify(token, process.env.secret_key)
 
-      // if (!user.is_admin)
-      //   throw new Error('Access denied.')
+      if (!user.is_admin)
+        throw new Error('Access denied.')
       
       if(await prisma.gun.findUnique({ where: { name: data.name } }))
         throw new Error('Gun name already registered')
@@ -206,11 +206,11 @@ export const GunController = {
     try {
       const data: GunUpdate = filterGunProperties(req.body) as GunUpdate
       const { id } = req.params
-      // const token = req.headers['x-access-token']
-      // const user = jwt.verify(token, process.env.secret_key)
+      const token = req.headers['x-access-token']
+      const user = jwt.verify(token, process.env.secret_key)
 
-      // if (!user.is_admin)
-      //   throw new Error('Access denied.')
+      if (!user.is_admin)
+        throw new Error('Access denied.')
 
       if (id == undefined)
         throw new Error('No id provided.')
@@ -232,11 +232,11 @@ export const GunController = {
   async delete(req, res, next) {
     try {
       const { id } = req.params
-      // const token = req.headers['x-access-token']
-      // const user = jwt.verify(token, process.env.secret_key)
+      const token = req.headers['x-access-token']
+      const user = jwt.verify(token, process.env.secret_key)
 
-      // if (!user.is_admin)
-      //   throw new Error('Access denied.')
+      if (!user.is_admin)
+        throw new Error('Access denied.')
 
       if (id == undefined)
         throw new Error('No id provided.')

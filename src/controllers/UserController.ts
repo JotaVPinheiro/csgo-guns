@@ -95,11 +95,12 @@ export const UserController = {
     try {
       const data: UserUpdate = filterUserProperties(req.body) as UserUpdate
       const { id } = req.params
-      // const token = req.headers['x-access-token']
-      // const user = jwt.verify(token, process.env.secret_key)
 
-      // if (!user.is_admin)
-      //   throw new Error('Access denied.')
+      const token = req.headers['x-access-token']
+      const reqUser = jwt.verify(token, process.env.secret_key)
+
+      if (!reqUser.is_admin)
+        throw new Error('Access denied.')
 
       if (id == undefined)
         throw new Error('No id provided.')
@@ -136,11 +137,11 @@ export const UserController = {
   async delete(req, res, next) {
     try {
       const { id } = req.params
-      // const token = req.headers['x-access-token']
-      // const user = jwt.verify(token, process.env.secret_key)
+      const token = req.headers['x-access-token']
+      const reqUser = jwt.verify(token, process.env.secret_key)
 
-      // if (!user.is_admin)
-      //   throw new Error('Access denied.')
+      if (!reqUser.is_admin)
+        throw new Error('Access denied.')
 
       if (id == undefined)
         throw new Error('No id provided.')
