@@ -1,5 +1,4 @@
 require('dotenv').config
-const knex = require('../database')
 const jwt = require('jsonwebtoken')
 
 import { PrismaClient } from "@prisma/client"
