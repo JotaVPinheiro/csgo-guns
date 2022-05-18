@@ -22,8 +22,8 @@ routes
   .post('/logout', UserController.logout)
   .get('/auth', UserController.auth)
   // Review routes
-  .get('/reviews', ReviewController.index)
-  .post('/reviews', ReviewController.create)
-  .delete('/reviews', ReviewController.delete)
+  .get('/reviews/:gun_id', ReviewController.index)
+  .post('/reviews/:gun_id', ReviewController.create)
+  .delete('/reviews/:id', ReviewController.delete)
 
 module.exports = routes
