@@ -159,17 +159,18 @@ export const UserController = {
   async login(req, res, next) {
     try {
       const { username, password } = req.body
-      const user = await knex('users').where('username', username)
+      // const user = await knex('users').where('username', username)
+      const user: User = await prisma.user.findFirst({ where: { username } })
 
-      if (user.length == 0)
+      if (user == null)
         throw new Error('Username not found.')
 
-      const rightPassword = await bcrypt.compare(password, user[0].password)
+      const rightPassword = await bcrypt.compare(password, user.password)
 
       if (!rightPassword) {
         throw new Error('Wrong password.')
       } else {
-        const token = jwt.sign(user[0], process.env.secret_key, { expiresIn })
+        const token = jwt.sign(user, process.env.secret_key, { expiresIn })
         return res.json({ auth: true, token })
       }
     } catch (error) {
