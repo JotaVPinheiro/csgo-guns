@@ -47,17 +47,18 @@ export const UserController = {
     try {
       const { page = 1 } = req.query
       const pagination = { skip: (page - 1) * maxPerPage, take: maxPerPage }
+      const select = { username: true, email: true }
       const { id } = req.params
 
       if (id) {
-        const user: User = await prisma.user.findFirst({ where: { id } })
+        const user = await prisma.user.findFirst({ where: { id }, select })
         if(!user)
           throw new Error('User not found!')
         
         return res.json(user)
       }
 
-      const users = await prisma.user.findMany({ ...pagination })
+      const users = await prisma.user.findMany({ ...pagination, select })
       return res.json(users)
     } catch (error) {
       next(error)
@@ -159,7 +160,6 @@ export const UserController = {
   async login(req, res, next) {
     try {
       const { username, password } = req.body
-      // const user = await knex('users').where('username', username)
       const user: User = await prisma.user.findFirst({ where: { username } })
 
       if (user == null)
